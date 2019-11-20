@@ -1,0 +1,6 @@
+timeout timer: 2 secs 
+request from sender
+ack from receiver 
+ack from sender 
+
+then we implement sliding window 
