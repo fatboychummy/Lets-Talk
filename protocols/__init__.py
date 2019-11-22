@@ -3,16 +3,21 @@ import socket
 import time
 import pickle
 
-sys.exit(100000000000)
-
 class protocols:
-    def connect(transmit, IP, PORT):
+    def __init__(self, transmitSource):
+        self.transmit = transmitSource
+
+
+    def connect(IP, PORT):
         # three-way handshake
-        print("no")
+        print("Not Implemented")
+
+    def waitForConnection():
+        print("Not Implemented")
 
     # --------------------------------------------------------------------------
 
-    def slidingWindow(transmit, send, windowSize, maxFrames):
+    def slidingWindow(send, windowSize, maxFrames):
         windows = toWindows(send, windowSize)   # cut the data into frames
         lastACK = -1    # last acked frame, set to -1 since frame 0 is not acked
         current = 0     # current frame sending
@@ -53,9 +58,3 @@ class protocols:
                 # add to the window
             arr.append(w)
         return arr
-
-mySocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-send = "hi yes i want to be sent"
-
-slidingWindow(mySocket, send, 4, 4)
