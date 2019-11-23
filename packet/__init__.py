@@ -1,5 +1,12 @@
 import struct
 
+# convert a list of numbers into bytes
+def combinate(*argv):
+    a = ''
+    for arg in argv:
+        a = a + struct.pack("B", arg)
+    return a
+
 class packet:
     ACK = 8
     RST = 4
@@ -23,17 +30,13 @@ class packet:
 
     # convert to whatever the fuck this converts to
     def __repr__(self):
-        return self.dump()
+        return repr(self.dump())
 
     # dump to bits
     def dump(self):
         # convert to binary format
-        print("Not implemented")
-        return struct.pack("B", 5) + struct.pack("B", 5) + struct.pack("B", 5)
-
-    # convert a list of numbers into bytes
-    def combinate(*argv):
-        a = ''
-        for arg in argv:
-            a = a + struct.pack("B", arg)
-        return a
+        dat = []
+        for char in self.Data:
+            dat.append(ord(char))
+        w = combinate(self.SequenceNumber, self.AcknowledgeNumber, self.Type, *dat)
+        return w
