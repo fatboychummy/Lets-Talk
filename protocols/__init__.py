@@ -4,19 +4,17 @@ import time
 import pickle
 import struct
 
-import packet
+from packet import packet
 
 class protocols:
     def __init__(self, transmitSource):
         self.transmit = transmitSource
 
-
-
-    def connect(IP, PORT):
+    def connect(self, IP, PORT):
         # three-way handshake
         print("Not Implemented")
 
-    def waitForConnection():
+    def waitForConnection(self):
         print("Not Implemented")
 
     # --------------------------------------------------------------------------
@@ -24,8 +22,8 @@ class protocols:
     def slidingWindow(send, windowSize, maxFrames):
         temp = cutData(send, windowSize)   # cut the data
         windows = toFrames(packet.SYN, *temp) # convert into frames
-        lastACK = -1    # last acked frame, set to -1 since frame 0 is not acked
-        current = 0     # current frame sending
+        lastACK = -1   # last acked frame, set to -1 since frame 0 is not acked
+        current = 0    # current frame sending
         # define two threads to run simultaneusly
 
         # Thread 1
@@ -58,18 +56,19 @@ class protocols:
     # data: data to be cut into smaller size and inserted into a list
     # size: the size between each cut
     # ----
-def cutData(data, size):
-    n = len(data)
-    lst = []
-    for i in range(0, n - 1, size):
-        w = ""
-        for j in range(size):
-            if i + j < len(data):
-                w = w + data[i + j]
-            else:
-                w = w + '\0'
-        lst.append(w)
-    return lst
+    @staticmethod
+    def cutData(data, size):
+        n = len(data)
+        lst = []
+        for i in range(0, n - 1, size):
+            w = ""
+            for j in range(size):
+                if i + j < len(data):
+                    w = w + data[i + j]
+                else:
+                    w = w + '\0'
+            lst.append(w)
+        return lst
 
     # ----
     # arsf: packet.ACK, packet.RST, packet.SYN, or packet.FIN
@@ -78,14 +77,16 @@ def cutData(data, size):
     #
     # returns: a list of packets that can be sent via socket.sendTo(pack)
     # ----
-def toFrames(arsf, *argv):
-    packets = []
-    j = 0
-    for arg in argv:
-        packets.append(packet.packet(j, 0, arsf, arg))
-        j = j + 1
-    return packets
+    @staticmethod
+    def toFrames(arsf, *argv):
+        packets = []
+        j = 0
+        for arg in argv:
+            packets.append(packet(j, 0, arsf, arg))
+            j = j + 1
+        return packets
 
     # returns: an ACK packet with ack number j
-def ACK(j):
-    return packet.packet(0, j, packet.ACK, "")
+    @staticmethod
+    def ACK(j):
+        return packet(0, j, packet.ACK, "")
