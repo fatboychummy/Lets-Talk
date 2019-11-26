@@ -2,12 +2,16 @@ import sys
 import socket
 import time
 import struct
+import thread
+from threading import Event
+
 
 from packet import packet
 
 class protocols:
-    def __init__(self, transmitSource):
-        self.transmit = transmitSource
+    def __init__(self, UDP_IP, UDP_PORT):
+        self.UDP_IP = UDP_IP
+        self.UDP_PORT = UDP_PORT
 
     def connect(self, IP, PORT):
         # three-way handshake
@@ -18,36 +22,64 @@ class protocols:
 
     # --------------------------------------------------------------------------
 
-    def slidingWindow(send, windowSize, maxFrames):
-        temp = cutData(send, windowSize)   # cut the data
-        windows = toFrames(packet.SYN, *temp) # convert into frames
+    def slidingWindow(self, send, windowSize, maxFrames):
+        temp = protocols.cutData(send, windowSize)   # cut the data
+        windows = protocols.toWindowFrames(packet.SYN, *temp) # convert into frames
         lastACK = -1   # last acked frame, set to -1 since frame 0 is not acked
         current = 0    # current frame sending
         # define two threads to run simultaneusly
 
+        haltEvent = Event()
+
         # Thread 1
-        def thread_1():
+        def thread_1(self, current, windows, lastACK):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             while current < len(windows) and current != lastACK:
                 # while we still have frames to send
                 # and until the final ack is recieved
                 startTime = time.time() # get the time at which we started sending
                 cAck = lastACK          # set a temporary ack check var
-
                 while current < lastACK + maxFrames:
                     # send the next maxFrames frames
                     currentWindow = windows[current]
-                    transmit.send(currentWindow)
+                    sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT))
                     current = current + 1
-
-                while time.time() < startTime + x and cAck == lastACK:
+                while time.time() < startTime + 0.5 and cAck == lastACK:
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
+                if time.time() > startTime + 0.5:
+                    current = lastACK + 1
+            haltEvent.set()
 
-        # Thread 2
-        # listen for acks
+        def thread_2(self, halt):
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            except:
+                print("Cannot open socket")
+                sys.exit(1)
+
+            try:
+                sock.bind((UDP_IP, UDP_PORT))
+            except:
+                print("cannot bind")
+                sys.exit(1)
+
+            while not halt.is_set():
+                try:
+                    data, addr = sock.recvfrom(1024) # buffer size can change
+                except:
+                    print("cannot receive")
+                    sys.exit(1)
+                print(data)
+            # Thread 2
+            # listen for acks
             # if the ack recieved is greater than 1 above the lastACK
-                # set current back to lastACK
+            # set current back to lastACK
             # else set lastACK to the ack recieved
+
+        thread.start_new_thread(thread_1, (self, current, windows, lastACK))
+        thread.start_new_thread(thread_2, (self, haltEvent))
+
 
     # --------------------------------------------------------------------------
 
@@ -70,6 +102,7 @@ class protocols:
         return lst
 
     # ----
+    # NOTE: LAST FRAME WILL ALWAYS BE packet.FIN
     # arsf: packet.ACK, packet.RST, packet.SYN, or packet.FIN
     # argv: unpacked list of data frames (strings or something) to be converted
     # into binary frames
@@ -77,11 +110,15 @@ class protocols:
     # returns: a list of packets that can be sent via socket.sendTo(pack)
     # ----
     @staticmethod
-    def toFrames(arsf, *argv):
+    def toWindowFrames(arsf, *argv):
         packets = []
         j = 0
-        for arg in argv:
-            packets.append(packet(j, 0, arsf, arg))
+        for i in range(len(argv)):
+            arg = argv[i]
+            if i != len(argv) - 1:
+                packets.append(packet(j, 0, arsf, arg))
+            else:
+                packets.append(packet(j, 0, packet.FIN, arg))
             j = j + 1
         return packets
 
