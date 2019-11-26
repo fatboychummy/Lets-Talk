@@ -1,3 +1,3 @@
 # Lets-Talk
 
-A chat application that probably will not work but that's ok
+A computer program that allows two computers to talk to eachother and send memes
