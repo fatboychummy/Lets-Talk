@@ -1,7 +1,6 @@
 import sys
 import socket
 import time
-import pickle
 import struct
 
 from packet import packet
