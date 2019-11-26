@@ -32,6 +32,12 @@ class packet:
     def __repr__(self):
         return repr(self.dump())
 
+    def __getitem__(self, i):
+        return self.dump()[i]
+
+    def __len__(self):
+        return len(self.dump())
+
     # dump to bits
     def dump(self):
         # convert to binary format
