@@ -40,7 +40,6 @@ class packet:
             b = b + " ACK"
         if kBit(self.Type, 1):
             b = b + " FIN"
-
         b = b + "\nData: " + str(self.Data)
         return b
 
