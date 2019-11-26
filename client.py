@@ -17,4 +17,4 @@ def client (msgFromClient, serverAddressPort, bufferSize):
         print(msg)
 
 
-client("ACK", ('', 69420), 1024)
+client("ACK", ('', 55000), 1024)
