@@ -2,7 +2,8 @@
 
 import socket
 import protocols
-# example
+# example from https://pythontic.com/modules/socket/udp-client-server-example
+
 def server (localIP, localPort, bufferSize)
 #localIP     = "127.0.0.1"
 
