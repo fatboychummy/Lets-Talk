@@ -7,6 +7,11 @@ def combinate(*argv):
         a = a + struct.pack("B", arg)
     return a
 
+def kBit(n, k):
+    if n & (1 << (k - 1)):
+        return True
+    return False
+
 class packet:
     ACK = 8
     RST = 4
@@ -26,7 +31,18 @@ class packet:
 
     # convert to string
     def __str__(self):
-        return "Sequence Number: " + str(self.SequenceNumber) + "\nACK Number: " + str(self.AcknowledgeNumber) + "\nFlag: " + str(self.Type) + "\nData: " + str(self.Data)
+        b = "Sequence Number: " + str(self.SequenceNumber) + "\nACK Number: " + str(self.AcknowledgeNumber) + "\nFlag:"
+        if kBit(self.Type, 3):
+            b = b + " RST"
+        if kBit(self.Type, 2):
+            b = b + " SYN"
+        if kBit(self.Type, 4): # syn before ACK
+            b = b + " ACK"
+        if kBit(self.Type, 1):
+            b = b + " FIN"
+
+        b = b + "\nData: " + str(self.Data)
+        return b
 
     # convert to whatever the fuck this converts to
     def __repr__(self):
