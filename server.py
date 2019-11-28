@@ -14,7 +14,11 @@ def server (localIP, localPort, bufferSize):
     print("UDP server up and listening")
     # Listen for incoming datagrams
     while(True):
-        bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
+        try:
+            bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
+        except Exception as e:
+            print("an exception has occured {}".format(e))
+
         message = bytesAddressPair[0]
         address = bytesAddressPair[1]
         clientMsg = "Message from Client:{}".format(message)
