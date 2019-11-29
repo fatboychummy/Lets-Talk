@@ -2,9 +2,9 @@ import socket
 
 #placeholder  from https://pythontic.com/modules/socket/udp-client-server-example
 def client (msgFromClient, serverAddressPort, bufferSize):
-    #msgFromClient       = "Hello UDP Server"
-    #serverAddressPort   = ("127.0.0.1", 20001)
-    #bufferSize          = 1024
+    msgFromClient       = "Hello UDP Server"
+    serverAddressPort   = ("172.17.0.1", 20001)
+    bufferSize          = 1024
 
     bytesToSend         = str.encode(msgFromClient)
     # Create a UDP socket at client side
@@ -17,4 +17,4 @@ def client (msgFromClient, serverAddressPort, bufferSize):
         print(msg)
 
 
-    client("ACK", ('', 55000), 1024)
+client("Hello", ("172.17.0.1", 20001), 1024)

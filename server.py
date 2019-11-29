@@ -2,9 +2,9 @@ import socket
 import protocols
 # example from https://pythontic.com/modules/socket/udp-client-server-example
 def server (localIP, localPort, bufferSize):
-    #localIP     = "127.0.0.1"
-    #localPort   = 20001
-    #bufferSize  = 1024
+    localIP     = "127.0.0.1"
+    localPort   = 20001
+    bufferSize  = 1024
     msgFromServer       = "Hello UDP Client"
     bytesToSend         = str.encode(msgFromServer)
     # Create a datagram socket
@@ -27,3 +27,5 @@ def server (localIP, localPort, bufferSize):
         print(clientIP)
     # Sending a reply to client
     UDPServerSocket.sendto(bytesToSend, address)
+
+server('127.0.0.1', 20001, 1024)
