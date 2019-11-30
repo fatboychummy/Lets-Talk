@@ -1,31 +1,33 @@
-import socket
+import socket,sys,errno
 import protocols
 # example from https://pythontic.com/modules/socket/udp-client-server-example
-def server (localIP, localPort, bufferSize):
-    localIP     = "127.0.0.1"
-    localPort   = 20001
+
+    localPort   = 55000
     bufferSize  = 1024
     msgFromServer       = "Hello UDP Client"
     bytesToSend         = str.encode(msgFromServer)
     # Create a datagram socket
-    UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    try:
+        UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    except:
+        print("Cannot open socket")
+        sys.exit(1)
     # Bind to address and ip
-    UDPServerSocket.bind((localIP, localPort))
+    try:
+        UDPServerSocket.bind(('', localPort))
+    except:
+        print("Cannot bind socket to port")
+        sys.exit(1)
+
     print("UDP server up and listening")
     # Listen for incoming datagrams
     while(True):
         try:
             bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
-        except Exception as e:
-            print("an exception has occured {}".format(e))
+        except OSError as err:
+            print("Cannot receive from socket: {}".format(err.strerror))
+            sys.exit(1)
 
-        message = bytesAddressPair[0]
-        address = bytesAddressPair[1]
+        message = bytesAddressPair
         clientMsg = "Message from Client:{}".format(message)
-        clientIP  = "Client IP Address:{}".format(address)
         print(clientMsg)
-        print(clientIP)
-    # Sending a reply to client
-    UDPServerSocket.sendto(bytesToSend, address)
-
-server('127.0.0.1', 20001, 1024)
