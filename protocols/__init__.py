@@ -18,6 +18,9 @@ class protocols:
     def connect(self, IP, PORT):
         # three-way handshake
         print("Not Implemented")
+        # send SYN
+        # recieve SYN ACK
+        # send ACK
 
     def waitForConnection(self):
         print("Not Implemented")
