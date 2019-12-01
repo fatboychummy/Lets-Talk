@@ -2,9 +2,9 @@ import struct
 
 # convert a list of numbers into bytes
 def combinate(*argv):
-    a = ''
+    a = bytearray()
     for arg in argv:
-        a = a + struct.pack("B", arg)
+        a.append(arg)
     return a
 
 def kBit(n, k):
