@@ -19,7 +19,8 @@ except:
 
 try:
     UDPClientSocket.bind(('', 55000))
-    UDPClientSocket.sendto(packet(1, 0, packet.SYN, "Some data").dump(), (sys.argv[1], localPort))
+    for i in range(5):
+        UDPClientSocket.sendto(packet(i, 0, packet.SYN, "Some data").dump(), (sys.argv[1], localPort))
 except OSError as err:
     print('Cannot send: {}'.format(err.strerror))
     sys.exit(1)
