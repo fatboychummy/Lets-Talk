@@ -2,7 +2,7 @@ import sys
 import socket
 import time
 import struct
-import thread
+import _thread
 from threading import Event
 
 
