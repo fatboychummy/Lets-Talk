@@ -12,6 +12,8 @@ class protocols:
     def __init__(self, UDP_IP, UDP_PORT):
         self.UDP_IP = UDP_IP
         self.UDP_PORT = UDP_PORT
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(('', UDP_PORT))
 
     def connect(self, IP, PORT):
         # three-way handshake
@@ -33,7 +35,6 @@ class protocols:
 
         # Thread 1
         def thread_1(self, current, windows, lastACK):
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             while current < len(windows) and current != lastACK:
                 # while we still have frames to send
                 # and until the final ack is recieved
@@ -42,35 +43,27 @@ class protocols:
                 while current < lastACK + maxFrames:
                     # send the next maxFrames frames
                     currentWindow = windows[current]
-                    sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT))
+                    print("Send " + repr(currentWindow))
+                    self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT))
                     current = current + 1
                 while time.time() < startTime + 0.5 and cAck == lastACK:
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
                 if time.time() > startTime + 0.5:
                     current = lastACK + 1
+                lastACK = lastACK + 1
             haltEvent.set()
+            print("THREAD 1 DONE")
 
         def thread_2(self, halt):
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            except:
-                print("Cannot open socket")
-                sys.exit(1)
-
-            try:
-                sock.bind((UDP_IP, UDP_PORT))
-            except:
-                print("cannot bind")
-                sys.exit(1)
-
             while not halt.is_set():
                 try:
-                    data, addr = sock.recvfrom(1024) # buffer size can change
+                    data, addr = self.sock.recvfrom(1024) # buffer size can change
                 except:
                     print("cannot receive")
                     sys.exit(1)
-                print(data)
+                print("recv " + data)
+            print("THREAD 2 DONE")
             # Thread 2
             # listen for acks
             # if the ack recieved is greater than 1 above the lastACK
