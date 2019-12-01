@@ -52,7 +52,11 @@ class protocols:
 
         #_thread 1
         def thread_1(self, windows):
+            fails = 0
             while self.current < len(windows) or self.current != self.lastACK:
+                if fails > 10:
+                    print("Failed to send (No update after 10 tries)")
+                    sys.exit(1)
                 # while we still have frames to send
                 # and until the final ack is recieved
                 startTime = time.time() # get the time at which we started sending
@@ -69,8 +73,14 @@ class protocols:
                 while time.time() < startTime + 0.5 and cAck == self.lastACK:
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
+                # if timeout
                 if time.time() > startTime + 0.5:
                     self.current = self.lastACK + 1
+                # if lastACK updated
+                if cAck != self.lastACK:
+                    fails = 0
+                else:
+                    fails += 1
 
             print("Done at")
             print(self.current)
