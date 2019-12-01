@@ -9,11 +9,22 @@ from threading import Event
 from packet import packet
 
 class protocols:
-    def __init__(self, UDP_IP, UDP_PORT):
+    # set udp_ip to an empty string if reciever
+    def __init__(self, UDP_IP, UDP_PORT, BUFFER_SIZE):
         self.UDP_IP = UDP_IP
         self.UDP_PORT = UDP_PORT
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(('', UDP_PORT))
+        self.bufferSize = BUFFER_SIZE
+        try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        except:
+            print("Cannot open socket.")
+            sys.exit(1)
+
+        try:
+            self.sock.bind(('', UDP_PORT))
+        except:
+            print("Cannot bind socket.")
+            sys.exit(1)
 
     def connect(self, IP, PORT):
         # three-way handshake
@@ -24,6 +35,9 @@ class protocols:
 
     def waitForConnection(self):
         print("Not Implemented")
+        # recieve SYN
+        # send SYN ACK
+        # recieve ACK
 
     # --------------------------------------------------------------------------
 
@@ -61,7 +75,7 @@ class protocols:
         def thread_2(self, halt):
             while not halt.is_set():
                 try:
-                    data, addr = self.sock.recvfrom(1024) # buffer size can change
+                    data = self.sock.recvfrom(1024) # buffer size can change
                 except:
                     print("cannot receive")
                     sys.exit(1)
@@ -77,6 +91,32 @@ class protocols:
         thread.start_new_thread(thread_2, (self, haltEvent))
 
 
+    def slidingListen(self):
+        # run until FIN flag recieved
+        # if recieved > 1 above lastRec then ack lastRec
+        lastRec = 0
+        data = bytearray()
+        while 1:
+            bAPair = self.sock.recvfrom(self.bufferSize) # recieve from client
+            data += bAPair[0][3:]   # data from client
+            binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
+            raddr = bAPair[1][0]                # address to respond to
+            rport = bAPair[1][1]                # port to respond to
+
+            if binFlag[2] == packet.FIN:
+                break   # if FINALIZE, stop
+
+            if binFlag[0] > lastRec + 1:
+                binFlag[0] = lastRec
+                # if SYN number is too high (ie: packet lost)
+                # ack the last recieved packet
+            else:
+                # otherwise ack this packet
+                lastRec = binFlag[0]
+
+            # send ACK
+            self.sock.sendto(str(packet(0, binFlag[0], packet.ACK, "ack")).encode(), (raddr, rport))
+        return data
     # --------------------------------------------------------------------------
 
     # ----
