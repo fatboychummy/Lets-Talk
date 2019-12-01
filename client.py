@@ -1,5 +1,7 @@
 import socket,sys
 
+from packet import packet
+
 #placeholder  from https://pythontic.com/modules/socket/udp-client-server-example
 
 localPort = 55000
@@ -17,7 +19,7 @@ except:
 
 try:
     UDPClientSocket.bind(('', 55000))
-    UDPClientSocket.sendto(b'Hello World', (sys.argv[1], localPort))
+    UDPClientSocket.sendto(packet(1, 0, packet.SYN, "Some data"), (sys.argv[1], localPort))
 except OSError as err:
     print('Cannot send: {}'.format(err.strerror))
     sys.exit(1)
