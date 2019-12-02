@@ -10,20 +10,26 @@ from packet import packet
 
 class protocols:
     # set udp_ip to an empty string if reciever
-    def __init__(self, UDP_IP, UDP_PORT, BUFFER_SIZE):
+    def __init__(self, UDP_IP, UDP_PORT_1, UDP_PORT_2, BUFFER_SIZE):
         self.UDP_IP = UDP_IP
-        self.UDP_PORT = UDP_PORT
+        self.UDP_PORT_1 = UDP_PORT_1
+        self.UDP_PORT_2 = UDP_PORT_2
         self.bufferSize = BUFFER_SIZE
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         except:
-            print("Cannot open socket.")
+            print("Cannot open sockets.")
             sys.exit(1)
 
         try:
-            self.sock.bind(('', UDP_PORT))
+            self.sock.bind(('', UDP_PORT_1))
         except:
-            print("Cannot bind socket.")
+            print("Cannot bind socket 1")
+        try:
+            self.sock2.bind(('', UDP_PORT_2))
+        except:
+            print("Cannot bind socket 2.")
             sys.exit(1)
 
     def connect(self, IP, PORT):
@@ -68,7 +74,7 @@ class protocols:
                     # send the next maxFrames frames
                     currentWindow = windows[self.current]
                     print("Send " + repr(currentWindow))
-                    self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT))
+                    self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
                     self.current = self.current + 1
                 while time.time() < startTime + 0.5 and cAck == self.lastACK:
                     # wait x seconds (timeout) or wait until lastACK is updated
@@ -89,13 +95,13 @@ class protocols:
                 print("In thread 2 loop")
                 try:
                     print("a-----------------------")
-                    bAPair = self.sock.recvfrom(self.bufferSize) # recieve from client
+                    bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
                     print("b-----------------------")
                     binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
                     ackn = binFlag[1]
                     self.current = ackn
                 except:
-                    print("cannot receive")
+                    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                     sys.exit(1)
                 print("recv " + bAPair)
             print("THREAD 2 DONE")
@@ -113,7 +119,9 @@ class protocols:
         lastRec = 0
         data = bytearray()
         while 1:
-            bAPair = self.sock.recvfrom(self.bufferSize) # recieve from client
+            bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
+            print("Recieved")
+            print(bAPair)
             binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
             raddr = bAPair[1][0]                # address to respond to
             rport = bAPair[1][1]                # port to respond to
@@ -132,7 +140,10 @@ class protocols:
 
             # send ACK
             a = packet(0, binFlag[0], packet.ACK, "ack")
-            self.sock.sendto(a.dump(), (raddr, rport))
+            print("REPLY: ")
+            print("TO: " + str(raddr) + " " + str(rport))
+            print(a)
+            self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_2))
             if breakflag:
                 break
         return protocols.scrub(data)

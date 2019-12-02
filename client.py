@@ -12,6 +12,6 @@ if len(sys.argv) != 2:
     print("Usage: {} destination_IP_addr".format(sys.argv[0]))
     sys.exit(1)
 
-a = protocols(sys.argv[1], localPort, 1024)
+a = protocols(sys.argv[1], localPort, localPort + 1, 1024)
 
 a.slidingWindow("This is a string of stuff that needs to be sent", 4, 4)

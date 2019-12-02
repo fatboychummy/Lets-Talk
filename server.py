@@ -7,7 +7,7 @@ bufferSize  = 1024
 msgFromServer       = "Hello UDP Client"
 bytesToSend         = str.encode(msgFromServer)
 # Create a datagram socket
-a = protocols("", localPort, bufferSize)
+a = protocols("", localPort + 1, localPort, bufferSize)
 print("UDP server up and listening")
 # Listen for incoming datagrams
 while(True):
