@@ -4,7 +4,8 @@ import struct
 def combinate(*argv):
     a = bytearray()
     for arg in argv:
-        a.append(arg)
+        if arg < 256:
+            a.append(arg)
     return a
 
 def kBit(n, k):

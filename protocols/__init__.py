@@ -3,6 +3,7 @@ import socket
 import time
 import struct
 import threading
+import select
 
 
 from packet import packet
@@ -17,6 +18,12 @@ class protocols:
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+            # potentially remove
+            #------------------------
+            #self.sock.setblocking(0)
+            #self.sock2.setblocking(0)
+            #------------------------
         except:
             print("Cannot open sockets.")
             sys.exit(1)
@@ -31,12 +38,14 @@ class protocols:
             print("Cannot bind socket 2.")
             sys.exit(1)
 
-    def connect(self, a):
+    def connect(self):
         # three-way handshake
         #might need to use threads, will need to wait and have a time out
         print("Not Finished")
         #send SYN
-        self.sock.sendto(packet(1, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
+        synack = False
+        while not synack:
+            self.sock.sendto(packet(0, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
 
         # receive SYN ACK
         bAPair = self.sock2.recvfrom(self.bufferSize)
@@ -50,7 +59,7 @@ class protocols:
         #might need to use threads, will need to wait and have a time out
         print("Not Finished")
         # receive SYN
-        self.sock2.recvfrom(self.bufferSize)
+        bAPair = self.sock2.recvfrom(self.bufferSize)
         #break this down and check for correct sequence number
 
         # send SYN ACK
@@ -95,11 +104,13 @@ class protocols:
                 # if timeout
                 if time.time() > startTime + 0.5:
                     self.current = self.lastACK + 1
+                    print("Oh god oh fuck")
 
                 # if lastACK updated
                 if cAck != self.lastACK:
                     fails = 0
                 else:
+                    print("ah fuck")
                     fails += 1
 
                 # if we are done
@@ -176,15 +187,15 @@ class protocols:
     @staticmethod
     def cutData(data, size):
         n = len(data)
-        lst = []
-        for i in range(0, n - 1, size):
-            w = ""
-            for j in range(size):
-                if i + j < len(data):
-                    w = w + data[i + j]
-                else:
-                    w = w + '\0'
-            lst.append(w)
+        lst = [data[i:i+size] for i in range(0, n, size)]
+        #for i in range(0, n - 1, size):
+        #    w = ""
+        #    for j in range(size):
+        #        if i + j < len(data):
+        #            w = w + data[i + j]
+        #        else:
+        #            w = w + '\0'
+        #    lst.append(w)
         return lst
 
     # ----
