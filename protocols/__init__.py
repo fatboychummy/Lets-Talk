@@ -40,7 +40,8 @@ class protocols:
         self.sock.sendto(packet(1, 0, packet.SYN, ""), (self.UDP_IP, self.UDP_PORT_1))
 
         # receive SYN ACK
-        self.sock2.recvfrom(self.buffersize)
+        bAPair = self.sock2.recvfrom(self.bufferSize)
+        print(bAPair)
         #break this down somehow and check it
 
         # send ACK
@@ -50,14 +51,14 @@ class protocols:
         #might need to use threads, will need to wait and have a time out
         print("Not Finished")
         # receive SYN
-        self.sock2.recvfrom(self.buffersize)
+        self.sock2.recvfrom(self.bufferSize)
         #break this down and check for correct sequence number
 
         # send SYN ACK
         self.sock.sendto(packet(4, 2, packet.SYN + packet.ACK, ""), (self.UDP_IP, self.UDP_PORT_1))
 
         # receive ACK
-        self.sock2.recvfrom(self.buffersize)
+        self.sock2.recvfrom(self.bufferSize)
         #break this down and check for correct sequence number
 
     # --------------------------------------------------------------------------
