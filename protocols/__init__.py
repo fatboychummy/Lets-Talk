@@ -33,16 +33,31 @@ class protocols:
 
     def connect(self):
         # three-way handshake
-        print("Not Implemented")
-        # send SYN
-        # recieve SYN ACK
+        #might need to use threads, will need to wait and have a time out
+        print("Not Finished")
+        #send SYN
+        self.sock.sendto(packet(1, 0, packet.SYN, ""), (self.UDP_IP, self.UDP_PORT_1))
+
+        # receive SYN ACK
+        self.sock2.recvfrom(self.buffersize)
+        #break this down somehow and check it
+
         # send ACK
+        self.sock.sendto(packet(0, 5, packet.ACK, ""), (self.UDP_IP, self.UDP_PORT_1))
 
     def waitForConnection(self):
-        print("Not Implemented")
-        # recieve SYN
+        #might need to use threads, will need to wait and have a time out
+        print("Not Finished")
+        # receive SYN
+        self.sock2.recvfrom(self.buffersize)
+        #break this down and check for correct sequence number
+
         # send SYN ACK
-        # recieve ACK
+        self.sock.sendto(packet(4, 2, packet.SYN + packet.ACK, ""), (self.UDP_IP, self.UDP_PORT_1))
+
+        # receive ACK
+        self.sock2.recvfrom(self.buffersize)
+        #break this down and check for correct sequence number
 
     # --------------------------------------------------------------------------
 
