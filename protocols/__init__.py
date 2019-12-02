@@ -31,7 +31,7 @@ class protocols:
             print("Cannot bind socket 2.")
             sys.exit(1)
 
-    def connect(self):
+    def connect(self, a):
         # three-way handshake
         #might need to use threads, will need to wait and have a time out
         print("Not Finished")
