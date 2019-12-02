@@ -13,5 +13,8 @@ if len(sys.argv) != 2:
     sys.exit(1)
 
 a = protocols(sys.argv[1], localPort, localPort + 1, 1024)
+a.connect()
 
 a.slidingWindow("This is a string of stuff that needs to be sent", 4, 4)
+print("Successfully sent data.")
+sys.exit(1)

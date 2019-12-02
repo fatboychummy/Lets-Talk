@@ -2,8 +2,7 @@ import sys
 import socket
 import time
 import struct
-import _thread
-from threading import Event
+import threading
 
 
 from packet import packet
@@ -37,7 +36,7 @@ class protocols:
         #might need to use threads, will need to wait and have a time out
         print("Not Finished")
         #send SYN
-        self.sock.sendto(packet(1, 0, packet.SYN, ""), (self.UDP_IP, self.UDP_PORT_1))
+        self.sock.sendto(packet(1, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
 
         # receive SYN ACK
         bAPair = self.sock2.recvfrom(self.bufferSize)
@@ -45,7 +44,7 @@ class protocols:
         #break this down somehow and check it
 
         # send ACK
-        self.sock.sendto(packet(0, 5, packet.ACK, ""), (self.UDP_IP, self.UDP_PORT_1))
+        self.sock.sendto(packet(0, 5, packet.ACK, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
 
     def waitForConnection(self):
         #might need to use threads, will need to wait and have a time out
@@ -55,7 +54,7 @@ class protocols:
         #break this down and check for correct sequence number
 
         # send SYN ACK
-        self.sock.sendto(packet(4, 2, packet.SYN + packet.ACK, ""), (self.UDP_IP, self.UDP_PORT_1))
+        self.sock.sendto(packet(4, 2, packet.SYN + packet.ACK, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
 
         # receive ACK
         self.sock2.recvfrom(self.bufferSize)
@@ -70,7 +69,7 @@ class protocols:
         self.current = 0    # current frame sending
         # define two_threads to run simultaneusly
 
-        haltEvent = Event()
+        haltEvent = threading.Event()
 
         #_thread 1
         def thread_1(self, windows):
@@ -84,50 +83,47 @@ class protocols:
                 startTime = time.time() # get the time at which we started sending
                 cAck = self.lastACK          # set a temporary ack check var
                 while self.current < self.lastACK + maxFrames:
-                    print("C" + str(self.current))
-                    print("L" + str(self.lastACK))
-                    print("M" + str(maxFrames))
+                    if self.current >= len(windows):
+                        break
                     # send the next maxFrames frames
                     currentWindow = windows[self.current]
-                    print("Send " + repr(currentWindow))
                     self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
                     self.current = self.current + 1
-                while time.time() < startTime + 0.5 and cAck == self.lastACK:
+                while time.time() < startTime + 0.5 and cAck == self.lastACK and not self.current >= len(windows):
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
                 # if timeout
                 if time.time() > startTime + 0.5:
                     self.current = self.lastACK + 1
+
                 # if lastACK updated
                 if cAck != self.lastACK:
                     fails = 0
                 else:
                     fails += 1
 
+                # if we are done
+                if self.current >= len(windows):
+                    break
             haltEvent.set()
 
         def thread_2(self, halt):
             while not halt.is_set():
-                print("In thread 2 loop")
                 try:
-                    print("a-----------------------")
                     bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
-                    print("b-----------------------")
                     binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
                     ackn = binFlag[1]
-                    self.current = ackn
+                    self.lastACK = ackn
                 except:
-                    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                    print("Failed to recieve oh nooooo")
                     sys.exit(1)
-                print("recv " + bAPair)
-            print("THREAD 2 DONE")
 
-        _thread.start_new_thread(thread_1, (self, windows))
-        _thread.start_new_thread(thread_2, (self, haltEvent))
-        while not haltEvent.is_set():
-            print("CHECKY " + str(self.current))
-            time.sleep(0.1)
-
+        t1 = threading.Thread(name="Sender", target=thread_1, args=(self, windows))
+        t2 = threading.Thread(name="Reciever", target=thread_2, args=(self, haltEvent))
+        t2.start() # start the listener first in case
+        # starting it takes longer than it does to send/recieve
+        t1.start()
+        haltEvent.wait() # wait until halt event recieved
 
     def slidingListen(self):
         # run until FIN flag recieved
@@ -139,6 +135,7 @@ class protocols:
             print("Recieved")
             print(bAPair)
             binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
+
             raddr = bAPair[1][0]                # address to respond to
             rport = bAPair[1][1]                # port to respond to
             breakflag = False
@@ -152,13 +149,10 @@ class protocols:
             else:
                 # otherwise ack this packet
                 lastRec = binFlag[0]
-                data += bAPair[0][3:]               # data from client
+                data += bAPair[0][3:] # data from client
 
             # send ACK
             a = packet(0, binFlag[0], packet.ACK, "ack")
-            print("REPLY: ")
-            print("TO: " + str(raddr) + " " + str(rport))
-            print(a)
             self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_1))
             if breakflag:
                 break
