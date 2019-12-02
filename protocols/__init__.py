@@ -54,9 +54,9 @@ class protocols:
         def thread_1(self, windows):
             fails = 0
             while self.current < len(windows) or self.current != self.lastACK:
-                if fails > 10:
+                if fails >= 9:
                     print("Failed to send (No update after 10 tries)")
-                    sys.exit(1)
+                    break
                 # while we still have frames to send
                 # and until the final ack is recieved
                 startTime = time.time() # get the time at which we started sending
@@ -82,30 +82,23 @@ class protocols:
                 else:
                     fails += 1
 
-            print("Done at")
-            print(self.current)
-            print(self.lastACK)
-            print(maxFrames)
             haltEvent.set()
-            print("THREAD 1 DONE")
 
         def thread_2(self, halt):
             while not halt.is_set():
+                print("In thread 2 loop")
                 try:
+                    print("a-----------------------")
                     bAPair = self.sock.recvfrom(self.bufferSize) # recieve from client
+                    print("b-----------------------")
                     binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
                     ackn = binFlag[1]
                     self.current = ackn
                 except:
                     print("cannot receive")
                     sys.exit(1)
-                print("recv " + data)
+                print("recv " + bAPair)
             print("THREAD 2 DONE")
-            #_thread 2
-            # listen for acks
-            # if the ack recieved is greater than 1 above the lastACK
-            # set current back to lastACK
-            # else set lastACK to the ack recieved
 
         _thread.start_new_thread(thread_1, (self, windows))
         _thread.start_new_thread(thread_2, (self, haltEvent))
@@ -138,7 +131,8 @@ class protocols:
                 data += bAPair[0][3:]               # data from client
 
             # send ACK
-            self.sock.sendto(str(packet(0, binFlag[0], packet.ACK, "ack")).encode(), (raddr, rport))
+            a = packet(0, binFlag[0], packet.ACK, "ack")
+            self.sock.sendto(a.dump(), (raddr, rport))
             if breakflag:
                 break
         return protocols.scrub(data)
