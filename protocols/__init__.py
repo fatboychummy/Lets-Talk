@@ -39,7 +39,8 @@ class protocols:
         self.sock.sendto(packet(1, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
 
         # receive SYN ACK
-        self.sock2.recvfrom(self.bufferSize)
+        bAPair = self.sock2.recvfrom(self.bufferSize)
+        print(bAPair)
         #break this down somehow and check it
 
         # send ACK
