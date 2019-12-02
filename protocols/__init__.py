@@ -143,7 +143,7 @@ class protocols:
             print("REPLY: ")
             print("TO: " + str(raddr) + " " + str(rport))
             print(a)
-            self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_2))
+            self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_1))
             if breakflag:
                 break
         return protocols.scrub(data)
