@@ -187,7 +187,7 @@ class protocols:
             if tp - packet.FIN >= 0:
                 # finalize
                 tp -= packet.FIN
-                breakFlag = True # if finalize, stop
+                breakflag = True # if finalize, stop
                 print("Breakflag set")
 
             if binFlag[0] > lastRec + 1:
