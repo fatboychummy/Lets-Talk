@@ -73,9 +73,10 @@ class protocols:
 
     def slidingWindow(self, send, windowSize, maxFrames):
         temp = protocols.cutData(send, windowSize)   # cut the data
-        windows = protocols.toWindowFrames(packet.SYN, *temp) # convert into frames
+        windows = protocols.toWindowFrames(*temp) # convert into frames
         self.lastACK = -1   # last acked frame, set to -1 since frame 0 is not acked
         self.current = 0    # current frame sending
+        self.send = 0
         # define two_threads to run simultaneusly
 
         haltEvent = threading.Event()
@@ -91,16 +92,26 @@ class protocols:
                 # and until the final ack is recieved
                 startTime = time.time() # get the time at which we started sending
                 cAck = self.lastACK          # set a temporary ack check var
-                while self.current < self.lastACK + maxFrames:
+                while self.send < self.lastACK + maxFrames:
                     if self.current >= len(windows):
                         break
                     # send the next maxFrames frames
+
                     currentWindow = windows[self.current]
+
+                    if self.send > 255:
+                        self.send = 0
+                        self.lastACK = -1
+                        currentWindow.Type += packet.RST
+
                     self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
-                    self.current = self.current + 1
-                while time.time() < startTime + 0.5 and cAck == self.lastACK and not self.current >= len(windows):
+                    self.current += 1
+                    self.send += 1
+                while time.time() < startTime + 1 and cAck == self.lastACK and not self.current >= len(windows):
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
+
+                print(str(self.current) + " " + str(self.lastACK))
                 # if timeout
                 if time.time() > startTime + 0.5:
                     self.current = self.lastACK + 1
@@ -110,6 +121,8 @@ class protocols:
                 if cAck != self.lastACK:
                     fails = 0
                 else:
+                    print(self.current)
+                    print(self.lastACK)
                     print("ah fuck")
                     fails += 1
 
@@ -146,12 +159,29 @@ class protocols:
             print("Recieved")
             print(bAPair)
             binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
+            tp = binFlag[2]
 
             raddr = bAPair[1][0]                # address to respond to
             rport = bAPair[1][1]                # port to respond to
             breakflag = False
-            if binFlag[2] == packet.FIN:
-                breakflag = True   # if FINALIZE, stop
+
+            if tp - packet.ACK >= 0:
+                # ack
+                tp -= packet.ACK
+                # nothing pmuch
+            if tp - packet.RST >= 0:
+                # reset
+                tp -= packet.RST
+                # reset acker
+                lastRec = 0
+            if tp - packet.SYN >= 0:
+                # sync
+                tp -= packet.SYN
+
+            if tp - packet.FIN >= 0:
+                # finalize
+                tp -= packet.FIN
+                breakFlag = True # if finalize, stop
 
             if binFlag[0] > lastRec + 1:
                 binFlag[0] = lastRec
@@ -196,6 +226,7 @@ class protocols:
         #        else:
         #            w = w + '\0'
         #    lst.append(w)
+        print(lst)
         return lst
 
     # ----
@@ -207,15 +238,22 @@ class protocols:
     # returns: a list of packets that can be sent via socket.sendTo(pack)
     # ----
     @staticmethod
-    def toWindowFrames(arsf, *argv):
+    def toWindowFrames(*argv):
         packets = []
         j = 0
         for i in range(len(argv)):
             arg = argv[i]
-            if i != len(argv) - 1:
-                packets.append(packet(j, 0, arsf, arg))
-            else:
-                packets.append(packet(j, 0, packet.FIN, arg))
+
+            tp = packet.SYN
+
+            if i == len(argv) - 1:
+                tp = packet.FIN
+
+            if j > 255:
+                j = 0
+                tp += packet.RST
+
+            packets.append(packet(j, 0, tp, arg))
             j = j + 1
         return packets
 

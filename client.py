@@ -19,7 +19,7 @@ for line in sys.stdin:
 a = protocols(sys.argv[1], localPort, localPort + 1, 1024)
 #a.connect()
 
-a.slidingWindow(send, 4, 4)
+a.slidingWindow(send, 64, 4)
 
 print("Successfully sent data.")
 sys.exit(1)
