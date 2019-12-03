@@ -155,6 +155,7 @@ class protocols:
         lastRec = 0
         data = bytearray()
         while 1:
+            print("Back at the start")
             bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
             print("Recieved")
             print(bAPair)
