@@ -18,6 +18,6 @@ while(True):
         print("Cannot receive from socket: {}".format(err.strerror))
         sys.exit(1)
 
-    message = str(bytesAddressPair[0])
-    clientMsg = "Message from Client:{}".format(message)
+    message = bytesAddressPair
+    clientMsg = "Message from Client:{}".format(message.decode("utf-8"))
     print(clientMsg)
