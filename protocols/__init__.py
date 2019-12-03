@@ -169,19 +169,25 @@ class protocols:
                 # ack
                 tp -= packet.ACK
                 # nothing pmuch
+                print("Acknowledgement flag set")
+
             if tp - packet.RST >= 0:
                 # reset
                 tp -= packet.RST
                 # reset acker
                 lastRec = 0
+                print("Reset flag set")
+
             if tp - packet.SYN >= 0:
                 # sync
                 tp -= packet.SYN
+                print("Sync flag set")
 
             if tp - packet.FIN >= 0:
                 # finalize
                 tp -= packet.FIN
                 breakFlag = True # if finalize, stop
+                print("Breakflag set")
 
             if binFlag[0] > lastRec + 1:
                 binFlag[0] = lastRec
