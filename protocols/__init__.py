@@ -200,7 +200,9 @@ class protocols:
 
             # send ACK
             a = packet(0, binFlag[0], packet.ACK, "ack")
+            print("Before the send")
             self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_1))
+            print("past the send")
             if breakflag:
                 break
         return protocols.scrub(data)
