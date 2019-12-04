@@ -87,7 +87,7 @@ class protocols:
                     rport = bAPair[1][1]
                     print(int(rport))
                     pc = packet(1, 0, packet.SYN + packet.ACK, "")
-                    self.sock.sendto(pc.dump(), (raddr, rport))
+                    self.sock.sendto(pc.dump(), (str(raddr), int(rport)))
                     break
             except:
                 raise Exception("No connection after 10 seconds. Stop.")
