@@ -45,7 +45,7 @@ class protocols:
         #send SYN
         synack = False
         while not synack:
-            self.sock.sendto(packet(0, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
+            self.sock.sendto(packet(1, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
 
         # receive SYN ACK
         bAPair = self.sock2.recvfrom(self.bufferSize)
@@ -60,6 +60,15 @@ class protocols:
         print("Not Finished")
         # receive SYN
         bAPair = self.sock2.recvfrom(self.bufferSize)
+        print(bAPair)
+        binFlag = bytearray(bAPair[0][:3])
+        tp = binFlag[2]
+
+        raddr = bAPair[1][0]
+        rport = bAPair[1][1]
+
+        if()
+
         #break this down and check for correct sequence number
 
         # send SYN ACK
