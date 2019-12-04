@@ -56,8 +56,9 @@ class protocols:
                 tp = binFlag[2]
                 if tp == packet.SYN + packet.ACK:
                     synack = True
-            except socket.Timeouterror:
-                print(None)
+                    break
+            except:
+                None
         self.sock2.settimeout(None)
 
         #break this down somehow and check it
@@ -85,11 +86,14 @@ class protocols:
                     rport = bAPair[1][1]
                     pc = packet(1, 0, packet.SYN + packet.ACK, "")
                     self.sock.sendto(pc.dump(), (raddr, rport))
-
+                    break
             except:
                 raise Exception("No connection after 10 seconds. Stop.")
         self.sock2.settimeout(1.5)
-        self.sock2.recvfrom(self.bufferSize)
+        try:
+            self.sock2.recvfrom(self.bufferSize)
+        except:
+            None
         self.sock2.settimeout(None)
         return (raddr, rport)
 
