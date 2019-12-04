@@ -81,13 +81,12 @@ class protocols:
                 binFlag = bytearray(bAPair[0][:3])
                 tp = binFlag[2]
                 if tp == packet.SYN:
-                    time.sleep(0.1)
                     raddr = bAPair[1][0]
                     print(str(raddr))
                     rport = bAPair[1][1]
                     print(int(rport))
                     pc = packet(1, 0, packet.SYN + packet.ACK, "")
-                    self.sock.sendto(pc.dump(), (str(raddr), int(rport)))
+                    self.sock.sendto(pc.dump(), (str(raddr), int(rport) + 1))
                     break
             except:
                 raise Exception("No connection after 10 seconds. Stop.")
