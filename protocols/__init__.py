@@ -70,7 +70,7 @@ class protocols:
         print("Not Finished")
         # receive SYN
         syny = False
-        self.sock2.settimeout(60)
+        self.sock2.settimeout(10)
         raddr = 1
         rport = 1
         while not syny:
@@ -86,7 +86,7 @@ class protocols:
                     self.sock.sendto(pc.dump(), (raddr, rport))
 
             except:
-                raise Exception("No connection after 60 seconds. Stop.")
+                raise Exception("No connection after 10 seconds. Stop.")
         self.sock2.settimeout(1.5)
         self.sock2.recvfrom(self.bufferSize)
         self.sock2.settimeout(None)
