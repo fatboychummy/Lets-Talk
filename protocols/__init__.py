@@ -46,6 +46,7 @@ class protocols:
         synack = False
         self.sock2.settimeout(2)
         while not synack:
+            print("Attempt to send")
             self.sock.sendto(packet(0, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
             # receive SYN ACK
             try:
@@ -82,7 +83,7 @@ class protocols:
                 if tp == packet.SYN:
                     raddr = bAPair[1][0]
                     rport = bAPair[1][1]
-                    pc = packet(1, 0, packet.SYN + packet.ACK)
+                    pc = packet(1, 0, packet.SYN + packet.ACK, "")
                     self.sock.sendto(pc.dump(), (raddr, rport))
 
             except:
