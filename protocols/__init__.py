@@ -135,7 +135,7 @@ class protocols:
                     self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
                     self.current += 1
                     self.send += 1
-                while time.time() < startTime + 1 and cAck == self.lastACK and not self.current >= len(windows):
+                while time.time() < startTime + 0.3 and cAck == self.lastACK and not self.current >= len(windows):
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
 
