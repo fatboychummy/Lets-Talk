@@ -164,6 +164,7 @@ class protocols:
                     print(self.send, self.lastACK)
                     print(self.cuts)
                     break
+            print("SET HALT EVENT")
             haltEvent.set()
 
         def thread_2(self, halt):
