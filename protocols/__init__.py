@@ -128,7 +128,7 @@ class protocols:
                     currentWindow = windows[self.current]
                     print(self.current, self.send, self.lastACK, currentWindow)
 
-                    if self.send > 255:
+                    if self.send > 256:
                         self.send = 0
                         self.lastACK = -1
                         self.cuts += 1
