@@ -130,7 +130,6 @@ class protocols:
                     self.send = currentWindow.SequenceNumber
 
                     if self.send > 255:
-                        self.lastACK = -1
                         self.cuts += 1
                         currentWindow.Type += packet.RST
 
@@ -172,10 +171,10 @@ class protocols:
                     bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
                     binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
                     ackn = binFlag[1]
-                    #a = binFlag[2]
-                    #a = a - packet.ACK
-                    #if ackn > self.lastACK or a >= packet.RST:
-                    self.lastACK = ackn
+                    a = binFlag[2]
+                    a = a - packet.ACK
+                    if ackn > self.lastACK or a >= packet.RST:
+                        self.lastACK = ackn
                 except:
                     print("Failed to recieve oh nooooo")
                     sys.exit(1)
