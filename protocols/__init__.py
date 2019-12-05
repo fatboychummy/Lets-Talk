@@ -44,27 +44,29 @@ class protocols:
         print("Not Finished")
         #send SYN
         self.sock2.settimeout(2)
+        fails = 0
         while True:
-            print("Attempt to send")
             self.sock.sendto(packet(0, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
             # receive SYN ACK
             try:
                 bAPair = self.sock2.recvfrom(self.bufferSize)
-                print(bAPair)
                 binFlag = bytearray(bAPair[0][:3])
                 tp = binFlag[2]
                 if tp == packet.SYN + packet.ACK:
                     break
             except:
-                print("oh no")
-                time.sleep(5)
+                fails = fails + 1
+                if fails > 4:
+                    raise Exception("Failed to send 5 times.")
+                print("Failed to send, retrying in 1 second.")
+                time.sleep(1)
         self.sock2.settimeout(None)
 
         #break this down somehow and check it
 
         # send ACK
         self.sock.sendto(packet(1, 5, packet.ACK, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
-        time.sleep(2)
+        time.sleep(2) # allow time in case packet timed out
 
     def waitForConnection(self):
         # might need to use threads, will need to wait and have a time out
@@ -96,7 +98,7 @@ class protocols:
         except:
             None
         self.sock2.settimeout(None)
-        return (raddr, rport)
+        return (str(raddr), int(rport) + 1)
 
     # --------------------------------------------------------------------------
 
