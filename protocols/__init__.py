@@ -141,6 +141,7 @@ class protocols:
 
                 # if timeout
                 if time.time() > startTime + 0.5:
+                    print("Timeout")
                     self.current = self.lastACK + 1
                     self.send = self.lastACK + 1
 
