@@ -121,12 +121,12 @@ class protocols:
                 startTime = time.time() # get the time at which we started sending
                 cAck = self.lastACK          # set a temporary ack check var
                 while self.send < self.lastACK + maxFrames:
-                    if self.current >= len(windows):
+                    if self.current > len(windows):
                         break
                     # send the next maxFrames frames
 
                     currentWindow = windows[self.current]
-                    print(self.current, self.send, self.lastACK)
+                    print(self.current, self.send, self.lastACK, currentWindow)
 
                     if self.send > 255:
                         self.send = 0
