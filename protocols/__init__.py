@@ -143,12 +143,8 @@ class protocols:
 
                 # if timeout
                 if time.time() > startTime + 0.3:
-                    print("##Timeout##")
-                    print(self.current, self.send, self.lastACK)
-                    self.current = self.lastACK + (255 * self.cuts) + 1
+                    self.current = self.lastACK + 1
                     self.send = self.lastACK + 1
-                    print(self.current, self.send, self.lastACK)
-                    print("###########")
 
                 # if lastACK updated
                 if cAck != self.lastACK:
