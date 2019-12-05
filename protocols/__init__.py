@@ -131,7 +131,7 @@ class protocols:
                     if self.send > 255:
                         self.send = 0
                         self.lastACK = -1
-                        cuts += 1
+                        self.cuts += 1
                         currentWindow.Type += packet.RST
 
                     self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
