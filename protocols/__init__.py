@@ -204,6 +204,8 @@ class protocols:
 
             tp2 = packet.ACK
 
+            rstflag = False
+
             if tp - packet.ACK >= 0:
                 # ack
                 tp -= packet.ACK
@@ -216,16 +218,13 @@ class protocols:
                 # reset acker
                 lastRec = 0
                 binFlag[0] = 0
+                rstflag = True
 
             if tp - packet.SYN >= 0:
                 # sync
                 tp -= packet.SYN
 
-            if binFlag[0] > lastRec + 1 or binFlag[0] < lastRec + 1:
-                binFlag[0] = lastRec
-                # if SYN number is too high or too low (ie: packet lost or delayed)
-                # ack the last properly recieved packet
-            elif binFlag[0] == lastRec + 1:
+            if binFlag[0] == lastRec + 1 or rstflag:
                 # otherwise if the ack is the next-in-line, ack this packet
                 lastRec = binFlag[0]
                 data += bAPair[0][3:] # data from client
@@ -233,6 +232,11 @@ class protocols:
                     # finalize
                     tp -= packet.FIN
                     breakflag = True # if finalize, stop
+
+            elif binFlag[0] > lastRec + 1 or binFlag[0] < lastRec + 1:
+                binFlag[0] = lastRec
+                # if SYN number is too high or too low (ie: packet lost or delayed)
+                # ack the last properly recieved packet
 
             # send ACK
             a = packet(0, binFlag[0], tp2, "ack")
