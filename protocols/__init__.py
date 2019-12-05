@@ -200,6 +200,8 @@ class protocols:
             rport = bAPair[1][1]                # port to respond to
             breakflag = False
 
+            tp2 = packet.ACK
+
             if tp - packet.ACK >= 0:
                 # ack
                 tp -= packet.ACK
@@ -208,6 +210,7 @@ class protocols:
             if tp - packet.RST >= 0:
                 # reset
                 tp -= packet.RST
+                tp2 += packet.RST
                 # reset acker
                 lastRec = 0
 
@@ -229,7 +232,7 @@ class protocols:
                     breakflag = True # if finalize, stop
 
             # send ACK
-            a = packet(0, binFlag[0], packet.ACK, "ack")
+            a = packet(0, binFlag[0], tp2, "ack")
             self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_1))
             if breakflag:
                 break
