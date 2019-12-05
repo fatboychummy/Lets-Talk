@@ -43,40 +43,62 @@ class protocols:
         #might need to use threads, will need to wait and have a time out
         print("Not Finished")
         #send SYN
-        synack = False
-        while not synack:
-            self.sock.sendto(packet(1, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
+        self.sock2.settimeout(2)
+        fails = 0
+        while True:
+            self.sock.sendto(packet(0, 0, packet.SYN, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
+            # receive SYN ACK
+            try:
+                bAPair = self.sock2.recvfrom(self.bufferSize)
+                binFlag = bytearray(bAPair[0][:3])
+                tp = binFlag[2]
+                if tp == packet.SYN + packet.ACK:
+                    break
+            except:
+                fails = fails + 1
+                if fails > 4:
+                    raise Exception("Failed to send 5 times.")
+                print("Failed to send, retrying in 1 second.")
+                time.sleep(1)
+        self.sock2.settimeout(None)
 
-        # receive SYN ACK
-        bAPair = self.sock2.recvfrom(self.bufferSize)
-        print(bAPair)
         #break this down somehow and check it
 
         # send ACK
-        self.sock.sendto(packet(0, 5, packet.ACK, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
+        self.sock.sendto(packet(1, 5, packet.ACK, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
+        time.sleep(2) # allow time in case packet timed out
 
     def waitForConnection(self):
-        #might need to use threads, will need to wait and have a time out
+        # might need to use threads, will need to wait and have a time out
         print("Not Finished")
         # receive SYN
-        bAPair = self.sock2.recvfrom(self.bufferSize)
-        print(bAPair)
-        binFlag = bytearray(bAPair[0][:3])
-        tp = binFlag[2]
-
-        raddr = bAPair[1][0]
-        rport = bAPair[1][1]
-
-        if()
-
-        #break this down and check for correct sequence number
-
-        # send SYN ACK
-        self.sock.sendto(packet(4, 2, packet.SYN + packet.ACK, "").dump(), (self.UDP_IP, self.UDP_PORT_1))
-
-        # receive ACK
-        self.sock2.recvfrom(self.bufferSize)
-        #break this down and check for correct sequence number
+        syny = False
+        self.sock2.settimeout(10)
+        raddr = 1
+        rport = 1
+        while not syny:
+            bAPair = 1
+            try:
+                bAPair = self.sock2.recvfrom(self.bufferSize)
+                binFlag = bytearray(bAPair[0][:3])
+                tp = binFlag[2]
+                if tp == packet.SYN:
+                    raddr = bAPair[1][0]
+                    print(str(raddr))
+                    rport = bAPair[1][1]
+                    print(int(rport))
+                    pc = packet(1, 0, packet.SYN + packet.ACK, "")
+                    self.sock.sendto(pc.dump(), (str(raddr), int(rport) + 1))
+                    break
+            except:
+                raise Exception("No connection after 10 seconds. Stop.")
+        self.sock2.settimeout(1.5)
+        try:
+            self.sock2.recvfrom(self.bufferSize)
+        except:
+            None
+        self.sock2.settimeout(None)
+        return (str(raddr), int(rport) + 1)
 
     # --------------------------------------------------------------------------
 

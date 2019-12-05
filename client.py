@@ -17,7 +17,7 @@ for line in sys.stdin:
     send += line
 
 a = protocols(sys.argv[1], localPort, localPort + 1, 1024)
-#a.connect()
+b = a.connect()
 
 a.slidingWindow(send, 64, 4)
 
