@@ -208,7 +208,7 @@ class protocols:
                 # sync
                 tp -= packet.SYN
 
-            if binFlag[0] > lastRec + 1:
+            if binFlag[0] > lastRec + 1 or binFlag[0] < lastRec + 1:
                 binFlag[0] = lastRec
                 # if SYN number is too high (ie: packet lost)
                 # ack the last recieved packet
