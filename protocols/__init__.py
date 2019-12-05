@@ -144,7 +144,7 @@ class protocols:
                     print("##Timeout##")
                     print(self.current, self.send, self.lastACK, self.cuts)
                     self.current = self.lastACK + (255 * self.cuts) + 1
-                    self.send = self.lastACK + 1
+                    self.send = self.lastACK + 1 #!!!!!
                     print(self.current, self.send, self.lastACK)
                     print("###########")
                 if self.current >= len(windows):
@@ -171,11 +171,12 @@ class protocols:
                     bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
                     binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
                     ackn = binFlag[1]
-                    a = binFlag[2]
-                    a = a - packet.ACK
+                    a = binFlag[2] #assuming binFlag[2] is the packet flag 
+                    a = a - packet.ACK #!!!!! if ack = 8  then "a" - packet.ACK = "a" - 8 that means that "a" <= 0
                     print("###############################")
                     print("RECIEVED ACK", ackn)
-                    if ackn > self.lastACK or a >= packet.RST:
+                    #if "a" <= 0 and packet.Rst = 4 then "a" will always be less then packet.RST
+                    if ackn > self.lastACK or a >= packet.RST: #conclusion  a >= packet.RST does fucking nothing
                         self.lastACK = ackn
                 except:
                     print("Failed to recieve oh nooooo")
