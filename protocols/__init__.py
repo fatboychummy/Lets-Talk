@@ -142,6 +142,7 @@ class protocols:
                 # if timeout
                 if time.time() > startTime + 0.5:
                     self.current = self.lastACK + 1
+                    self.send = self.lastACK + 1
 
                 # if lastACK updated
                 if cAck != self.lastACK:
