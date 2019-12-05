@@ -173,6 +173,8 @@ class protocols:
                     ackn = binFlag[1]
                     a = binFlag[2]
                     a = a - packet.ACK
+                    print("###############################")
+                    print("RECIEVED ACK", ackn)
                     if ackn > self.lastACK or a >= packet.RST:
                         self.lastACK = ackn
                 except:
