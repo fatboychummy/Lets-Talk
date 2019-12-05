@@ -171,12 +171,11 @@ class protocols:
                     bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
                     binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
                     ackn = binFlag[1]
-                    a = binFlag[2] #assuming binFlag[2] is the packet flag 
-                    a = a - packet.ACK #!!!!! if ack = 8  then "a" - packet.ACK = "a" - 8 that means that "a" <= 0
+                    a = binFlag[2]
+                    a = a - packet.ACK
                     print("###############################")
-                    print("RECIEVED ACK", ackn)
-                    #if "a" <= 0 and packet.Rst = 4 then "a" will always be less then packet.RST
-                    if ackn > self.lastACK or a >= packet.RST: #conclusion  a >= packet.RST does fucking nothing
+                    print("RECIEVED ACK", ackn)                
+                    if ackn > self.lastACK or a >= packet.RST:
                         self.lastACK = ackn
                 except:
                     print("Failed to recieve oh nooooo")
