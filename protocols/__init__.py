@@ -125,6 +125,7 @@ class protocols:
                     # send the next maxFrames frames
 
                     currentWindow = windows[self.current]
+                    print(self.current, self.send)
 
                     if self.send > 255:
                         self.send = 0
