@@ -129,7 +129,7 @@ class protocols:
                     print(self.current, self.send, self.lastACK, currentWindow)
                     self.send = currentWindow.SequenceNumber
 
-                    if self.send > 255:
+                    if self.send == 0:
                         self.cuts += 1
                         currentWindow.Type += packet.RST
 
@@ -215,6 +215,7 @@ class protocols:
                 tp2 += packet.RST
                 # reset acker
                 lastRec = 0
+                binFlag[0] = 0
 
             if tp - packet.SYN >= 0:
                 # sync
