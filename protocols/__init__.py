@@ -212,7 +212,7 @@ class protocols:
                 binFlag[0] = lastRec
                 # if SYN number is too high (ie: packet lost)
                 # ack the last recieved packet
-            else:# binFlag[0] == lastRec + 1:
+            elif binFlag[0] == lastRec + 1:
                 # otherwise ack this packet
                 lastRec = binFlag[0]
                 data += bAPair[0][3:] # data from client
