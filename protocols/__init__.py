@@ -127,16 +127,15 @@ class protocols:
 
                     currentWindow = windows[self.current]
                     print(self.current, self.send, self.lastACK, currentWindow)
+                    self.send = currentWindow.SequenceNumber
 
                     if self.send > 255:
-                        self.send = -1
                         self.lastACK = -1
                         self.cuts += 1
                         currentWindow.Type += packet.RST
 
                     self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
                     self.current += 1
-                    self.send += 1
                 while time.time() < startTime + 0.3 and cAck == self.lastACK and not self.current >= len(windows):
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
@@ -217,10 +216,10 @@ class protocols:
 
             if binFlag[0] > lastRec + 1 or binFlag[0] < lastRec + 1:
                 binFlag[0] = lastRec
-                # if SYN number is too high (ie: packet lost)
-                # ack the last recieved packet
+                # if SYN number is too high or too low (ie: packet lost or delayed)
+                # ack the last properly recieved packet
             elif binFlag[0] == lastRec + 1:
-                # otherwise ack this packet
+                # otherwise if the ack is the next-in-line, ack this packet
                 lastRec = binFlag[0]
                 data += bAPair[0][3:] # data from client
                 if tp - packet.FIN >= 0:
