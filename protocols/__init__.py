@@ -157,7 +157,7 @@ class protocols:
                     fails += 1
 
                 # if we are done
-                if self.current >= len(windows):
+                if self.current >= len(windows) and self.send == self.lastACK:
                     break
             haltEvent.set()
 
