@@ -149,6 +149,8 @@ class protocols:
                     self.send = self.lastACK + 1
                     print(self.current, self.send, self.lastACK)
                     print("###########")
+                if self.current >= len(windows):
+                    fails = 0
 
                 # if lastACK updated
                 if cAck != self.lastACK:
