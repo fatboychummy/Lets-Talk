@@ -158,6 +158,9 @@ class protocols:
 
                 # if we are done
                 if self.current >= len(windows) and self.send == self.lastACK:
+                    print(self.current, len(windows))
+                    print(self.send, self.lastACK)
+                    print(self.cuts)
                     break
             haltEvent.set()
 
