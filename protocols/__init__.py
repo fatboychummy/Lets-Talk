@@ -104,6 +104,7 @@ class protocols:
         self.lastACK = -1   # last acked frame, set to -1 since frame 0 is not acked
         self.current = 0    # current frame sending
         self.send = 0
+        self.cuts = 0
         # define two_threads to run simultaneusly
 
         haltEvent = threading.Event()
@@ -130,6 +131,7 @@ class protocols:
                     if self.send > 255:
                         self.send = 0
                         self.lastACK = -1
+                        cuts += 1
                         currentWindow.Type += packet.RST
 
                     self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
@@ -142,7 +144,7 @@ class protocols:
                 # if timeout
                 if time.time() > startTime + 0.3:
                     print("Timeout")
-                    self.current = self.lastACK + 1
+                    self.current = self.lastACK + (255 * self.cuts) + 1
                     self.send = self.lastACK + 1
 
                 # if lastACK updated
