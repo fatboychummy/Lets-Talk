@@ -140,7 +140,7 @@ class protocols:
                     time.sleep(0.001)
 
                 # if timeout
-                if time.time() > startTime + 0.5:
+                if time.time() > startTime + 0.3:
                     print("Timeout")
                     self.current = self.lastACK + 1
                     self.send = self.lastACK + 1
