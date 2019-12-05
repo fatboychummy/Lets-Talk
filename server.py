@@ -9,15 +9,14 @@ bytesToSend         = str.encode(msgFromServer)
 # Create a datagram socket
 a = protocols("", localPort + 1, localPort, bufferSize)
 b = a.waitForConnection()
-print("UDP server up and listening")
 # Listen for incoming datagrams
-while(True):
-    try:
-        bytesAddressPair = a.slidingListen()
-    except OSError as err:
-        print("Cannot receive from socket: {}".format(err.strerror))
-        sys.exit(1)
 
-    message = bytesAddressPair
-    clientMsg = "Message from Client:{}".format(message.decode("utf-8"))
-    print(clientMsg)
+try:
+    bytesAddressPair = a.slidingListen()
+except OSError as err:
+    print("Cannot receive from socket: {}".format(err.strerror))
+    sys.exit(1)
+
+message = bytesAddressPair
+clientMsg = message.decode("utf-8")
+print(clientMsg)
