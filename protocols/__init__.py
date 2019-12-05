@@ -128,8 +128,8 @@ class protocols:
                     currentWindow = windows[self.current]
                     print(self.current, self.send, self.lastACK, currentWindow)
 
-                    if self.send > 256:
-                        self.send = 0
+                    if self.send > 255:
+                        self.send = -1
                         self.lastACK = -1
                         self.cuts += 1
                         currentWindow.Type += packet.RST
@@ -144,7 +144,7 @@ class protocols:
                 # if timeout
                 if time.time() > startTime + 0.3:
                     print("##Timeout##")
-                    print(self.current, self.send, self.lastACK)
+                    print(self.current, self.send, self.lastACK, self.cuts)
                     self.current = self.lastACK + (255 * self.cuts) + 1
                     self.send = self.lastACK + 1
                     print(self.current, self.send, self.lastACK)
