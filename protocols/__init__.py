@@ -112,7 +112,7 @@ class protocols:
         #_thread 1
         def thread_1(self, windows):
             fails = 0
-            while self.current < len(windows) or self.current != self.lastACK:
+            while True:
                 if fails >= 9:
                     print("Failed to send (No update after 10 tries)")
                     break
