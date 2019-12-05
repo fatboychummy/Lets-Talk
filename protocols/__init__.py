@@ -172,7 +172,9 @@ class protocols:
                     bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
                     binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
                     ackn = binFlag[1]
-                    if ackn > self.lastACK:
+                    a = binFlag[2]
+                    a = a - packet.ACK
+                    if ackn > self.lastACK or a >= packet.RST:
                         self.lastACK = ackn
                 except:
                     print("Failed to recieve oh nooooo")
