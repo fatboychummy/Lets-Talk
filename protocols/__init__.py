@@ -208,11 +208,6 @@ class protocols:
                 # sync
                 tp -= packet.SYN
 
-            if tp - packet.FIN >= 0:
-                # finalize
-                tp -= packet.FIN
-                breakflag = True # if finalize, stop
-
             if binFlag[0] > lastRec + 1:
                 binFlag[0] = lastRec
                 # if SYN number is too high (ie: packet lost)
@@ -221,6 +216,10 @@ class protocols:
                 # otherwise ack this packet
                 lastRec = binFlag[0]
                 data += bAPair[0][3:] # data from client
+                if tp - packet.FIN >= 0:
+                    # finalize
+                    tp -= packet.FIN
+                    breakflag = True # if finalize, stop
 
             # send ACK
             a = packet(0, binFlag[0], packet.ACK, "ack")
