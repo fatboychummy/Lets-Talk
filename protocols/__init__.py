@@ -41,7 +41,6 @@ class protocols:
     def connect(self):
         # three-way handshake
         #might need to use threads, will need to wait and have a time out
-        print("Not Finished")
         #send SYN
         self.sock2.settimeout(2)
         fails = 0
@@ -70,7 +69,6 @@ class protocols:
 
     def waitForConnection(self):
         # might need to use threads, will need to wait and have a time out
-        print("Not Finished")
         # receive SYN
         syny = False
         self.sock2.settimeout(10)
@@ -84,9 +82,7 @@ class protocols:
                 tp = binFlag[2]
                 if tp == packet.SYN:
                     raddr = bAPair[1][0]
-                    print(str(raddr))
                     rport = bAPair[1][1]
-                    print(int(rport))
                     pc = packet(1, 0, packet.SYN + packet.ACK, "")
                     self.sock.sendto(pc.dump(), (str(raddr), int(rport) + 1))
                     break
@@ -142,19 +138,14 @@ class protocols:
                     # wait x seconds (timeout) or wait until lastACK is updated
                     time.sleep(0.001)
 
-                print(str(self.current) + " " + str(self.lastACK))
                 # if timeout
                 if time.time() > startTime + 0.5:
                     self.current = self.lastACK + 1
-                    print("Oh god oh fuck")
 
                 # if lastACK updated
                 if cAck != self.lastACK:
                     fails = 0
                 else:
-                    print(self.current)
-                    print(self.lastACK)
-                    print("ah fuck")
                     fails += 1
 
                 # if we are done
@@ -186,10 +177,7 @@ class protocols:
         lastRec = 0
         data = bytearray()
         while 1:
-            print("Back at the start")
             bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
-            print("Recieved")
-            print(bAPair)
             binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
             tp = binFlag[2]
 
@@ -201,25 +189,21 @@ class protocols:
                 # ack
                 tp -= packet.ACK
                 # nothing pmuch
-                print("Acknowledgement flag set")
 
             if tp - packet.RST >= 0:
                 # reset
                 tp -= packet.RST
                 # reset acker
                 lastRec = 0
-                print("Reset flag set")
 
             if tp - packet.SYN >= 0:
                 # sync
                 tp -= packet.SYN
-                print("Sync flag set")
 
             if tp - packet.FIN >= 0:
                 # finalize
                 tp -= packet.FIN
                 breakflag = True # if finalize, stop
-                print("Breakflag set")
 
             if binFlag[0] > lastRec + 1:
                 binFlag[0] = lastRec
@@ -232,9 +216,7 @@ class protocols:
 
             # send ACK
             a = packet(0, binFlag[0], packet.ACK, "ack")
-            print("Before the send")
             self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_1))
-            print("past the send")
             if breakflag:
                 break
         return protocols.scrub(data)
@@ -266,7 +248,6 @@ class protocols:
         #        else:
         #            w = w + '\0'
         #    lst.append(w)
-        print(lst)
         return lst
 
     # ----
