@@ -1,4 +1,4 @@
-import socket,sys
+import socket,sys,time
 
 from protocols import protocols
 from packet import packet
@@ -18,10 +18,12 @@ for line in sys.stdin:
 
 a = protocols(sys.argv[1], localPort, localPort + 1, 1024)
 print("Connecting...")
+start = time.time()
 b = a.connect()
 print("We have connected to the other dude.")
 
 a.slidingWindow(send, 4, 8)
-
+elapsed = time.time() - start
 print("Successfully sent data.")
+print("Took", elapsed, " seconds.")
 sys.exit(1)
