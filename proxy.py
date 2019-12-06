@@ -16,6 +16,8 @@ class Proxy:
         self.UDP_PORT_1 = UDP_PORT_1
         self.UDP_PORT_2 = UDP_PORT_2
         self.BUFFER_SIZE = BUFFER_SIZE
+        self.dropCount = 0
+        self.delayCount = 0
 
         def proxy_server(self):
             # listen for incoming connections on port 1:
@@ -44,9 +46,11 @@ class Proxy:
                     tt = threading.Thread(name="why", target=func, args=(self, tm, data[0]))
                     print("Delaying above packet by " + str(tm) + " seconds.")
                     tt.start()
+                    delayCount += 1
                 elif ran == 1:
                     # drop packet so do nothing
                     print("Dropping above packet.")
+                    dropCount += 1
                 else:
                     print("Doing normal stuff with above packet")
                     self.sock1.sendto(data[0], (self.UDP_IP1, self.UDP_PORT_1))
@@ -80,9 +84,11 @@ class Proxy:
                     tt = threading.Thread(name="why", target=func, args=(self, tm, data[0]))
                     print("Delaying above packet by " + str(tm) + " seconds.")
                     tt.start()
+                    delayCount += 1
                 elif ran == 1:
                     # drop packet so do nothing
                     print("Dropping above packet.")
+                    dropCount += 1
                 else:
                     print("Doing normal stuff with above packet")
                     self.sock2.sendto(data[0], (self.UDP_IP2, self.UDP_PORT_2))
@@ -96,6 +102,8 @@ class Proxy:
 
         t1.join()
         t2.join()
+        print("Dropped", self.dropCount, "packets.")
+        print("Delayed", self.delayCount, "packets.")
 
 #def __init__(self, UDP_IP1, UDP_IP2, UDP_PORT_1, UDP_PORT_2, BUFFER_SIZE)
 if len(sys.argv) < 3:
