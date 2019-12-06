@@ -106,7 +106,7 @@ class protocols:
         for i in range(256): # set 0 <-> 255 to false
             self.ACKED.append(False)
         self.resetFlag = False
-        self.current = 0    # current frame sending
+        self.current = False    # current frame sending
         self.send = 0
         self.cuts = 0
         self.stopAll = False
@@ -117,84 +117,97 @@ class protocols:
         #_thread 1
 
         def send_packet(self, pack, timeout):
-            print("#############START", threading.currentThread().getName())
             num = pack.SequenceNumber
             while not self.ACKED[num] and not (num == 255 and self.resetFlag) and not self.stopAll:
-                print("Attempting to send a packet\n", pack)
                 self.sock.sendto(pack.dump(), (self.UDP_IP, self.UDP_PORT_1))
                 time.sleep(timeout)
-            print("#############STOP", threading.currentThread().getName())
 
         # listener thread, adds ACKs to the self.ACKED
         # sets the resetFlag to true when reset needed
         def listen(self):
+            self.sock2.settimeout(1)
             while True:
-                bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
-                binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
-                ackn = binFlag[1]
-                a = binFlag[2]
+                baPair = 0
+                wasException = False
+                try:
+                    bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
+                except:
+                    wasException = True
+                    if self.current:
+                        break
+                if not wasException:
+                    binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
+                    ackn = binFlag[1]
+                    a = binFlag[2]
 
-                # determine if ACK, RST, SYN, or FIN (or any combination of them)
-                if a >= packet.ACK:
-                    # ack received
-                    a -= packet.ACK
-                if a >= packet.RST:
-                    # reset received
-                    a -= packet.RST
-                    self.resetFlag = True
-                    self.lastACK = -1
-                if a >= packet.SYN:
-                    # sync received
-                    a -= packet.SYN
-                if a >= packet.FIN:
-                    # finalize received
-                    a -= packet.FIN
-                    print("Recieved finalization fix later")
+                    # determine if ACK, RST, SYN, or FIN (or any combination of them)
+                    if a >= packet.ACK:
+                        # ack received
+                        a -= packet.ACK
+                    if a >= packet.RST:
+                        # reset received
+                        a -= packet.RST
+                        self.resetFlag = True
+                    if a >= packet.SYN:
+                        # sync received
+                        a -= packet.SYN
+                    if a >= packet.FIN:
+                        # finalize received
+                        a -= packet.FIN
+                        print("Recieved finalization fix later")
 
-                # if this is one of the next ACKs
-                if ackn > self.lastACK:
-                    # set this packet and all previous packets to true
-                    print("===ACK", ackn)
-                    for i in range(ackn, -1, -1):
-                        self.ACKED[i] = True
-                    self.lastACK = ackn
+                    # if this is one of the next ACKs
+                    if ackn > self.lastACK:
+                        # set this packet and all previous packets to true
+                        for i in range(ackn, -1, -1):
+                            self.ACKED[i] = True
+                        self.lastACK = ackn
+
+                    if self.resetFlag:
+                        self.lastACK = -1
 
         # run the listener
         t1 = threading.Thread(target=listen, args=(self,))
         t1.start()
         # run the sender
+        print("Sending", str(len(windows)), "windows.")
         i = 0
         while i < len(windows):
             j = 0
             threads = []
-            while j < 256:
+            while j < 256 and i + j < len(windows):
                 # start threads
-                print(windows[i + j].SequenceNumber, i, j, i + j)
                 temp = threading.Thread(name=str(j), target=send_packet, args=(self, windows[i + j], 0.1))
                 temp.start()
                 threads.append(temp)
                 # ensure only maxFrames threads are running at once
                 while len(threads) >= maxFrames:
-                    print("Threads at max length")
                     threads = [t for t in threads if t.is_alive()]
                     time.sleep(0.1)
 
                 # ensure that, if we are on the 255th window, that we wait until it completes.
                 while len(threads) >= 1 and j == 255:
                     for t in threads:
-                        if t.getName() == str(j) and not t.is_alive():
-                            print("STOP ALL")
+                        if t.getName() == str(255) and not t.is_alive():
                             self.stopAll = True
                             time.sleep(2)
                             self.stopAll = False
-                            for k in range(255):
+                            for k in range(256):
                                 self.ACKED[k] = False
                             threads = [t for t in threads if t.is_alive()]
+                            self.resetFlag = False
                             break
                     time.sleep(0.1)
                 j += 1
 
+                if (i + j) % 100 == 0:
+                    print("Packet:", i + j)
+
             i += 256
+        time.sleep(3)
+        self.current = True
+        self.stopAll = True
+        time.sleep(3)
 
     def slidingListen(self):
         # run until FIN flag recieved
@@ -218,20 +231,16 @@ class protocols:
                 # ack
                 tp -= packet.ACK
                 # nothing pmuch
-
             if tp - packet.RST >= 0:
                 # reset
                 tp -= packet.RST
                 tp2 += packet.RST
                 # reset acker
-                lastRec = 0
                 rstflag = True
-
             if tp - packet.SYN >= 0:
                 # sync
                 tp -= packet.SYN
-
-            if binFlag[0] == lastRec + 1 or rstflag:
+            if binFlag[0] == lastRec + 1:
                 # otherwise if the ack is the next-in-line, ack this packet
                 lastRec = binFlag[0]
                 data += bAPair[0][3:] # data from client
@@ -248,7 +257,7 @@ class protocols:
             # send ACK
             a = packet(0, binFlag[0], tp2, "ack")
             self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_1))
-            if rstFlag:
+            if rstflag:
                 lastRec = 0
             if breakflag:
                 break

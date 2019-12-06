@@ -17,9 +17,11 @@ for line in sys.stdin:
     send += line
 
 a = protocols(sys.argv[1], localPort, localPort + 1, 1024)
+print("Connecting...")
 b = a.connect()
+print("We have connected to the other dude.")
 
-a.slidingWindow(send, 64, 4)
+a.slidingWindow(send, 4, 8)
 
 print("Successfully sent data.")
 sys.exit(1)

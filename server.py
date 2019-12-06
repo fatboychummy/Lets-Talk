@@ -8,7 +8,9 @@ msgFromServer       = "Hello UDP Client"
 bytesToSend         = str.encode(msgFromServer)
 # Create a datagram socket
 a = protocols("", localPort + 1, localPort, bufferSize)
+print("Listening for connections...")
 b = a.waitForConnection()
+print("oh hey look somebody connected cool.")
 # Listen for incoming datagrams
 
 try:

@@ -4,6 +4,7 @@ import threading
 import random
 import time
 
+errorChance = 5
 
 class Proxy:
     """ Used to proxy single udp connection"""
@@ -33,7 +34,7 @@ class Proxy:
             while True:
                 data = self.sock1.recvfrom(self.BUFFER_SIZE)
                 print("Recieved from server " + str(data))
-                ran = random.randint(0, 100)
+                ran = random.randint(0, errorChance)
                 if ran == 0:
                     # delay random time 0.2 -> 1.5 seconds
                     def func(self, rn, data):
@@ -69,7 +70,7 @@ class Proxy:
             while True:
                 data = self.sock2.recvfrom(self.BUFFER_SIZE)
                 print("Recieved from client " + str(data))
-                ran = random.randint(0, 100)
+                ran = random.randint(0, errorChance)
                 if ran == 0:
                     # delay random time 0.2 -> 1.5 seconds
                     def func(self, rn, data):
