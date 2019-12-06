@@ -46,11 +46,11 @@ class Proxy:
                     tt = threading.Thread(name="why", target=func, args=(self, tm, data[0]))
                     print("Delaying above packet by " + str(tm) + " seconds.")
                     tt.start()
-                    delayCount += 1
+                    self.delayCount += 1
                 elif ran == 1:
                     # drop packet so do nothing
                     print("Dropping above packet.")
-                    dropCount += 1
+                    self.dropCount += 1
                 else:
                     print("Doing normal stuff with above packet")
                     self.sock1.sendto(data[0], (self.UDP_IP1, self.UDP_PORT_1))
@@ -84,11 +84,11 @@ class Proxy:
                     tt = threading.Thread(name="why", target=func, args=(self, tm, data[0]))
                     print("Delaying above packet by " + str(tm) + " seconds.")
                     tt.start()
-                    delayCount += 1
+                    self.delayCount += 1
                 elif ran == 1:
                     # drop packet so do nothing
                     print("Dropping above packet.")
-                    dropCount += 1
+                    self.dropCount += 1
                 else:
                     print("Doing normal stuff with above packet")
                     self.sock2.sendto(data[0], (self.UDP_IP2, self.UDP_PORT_2))
