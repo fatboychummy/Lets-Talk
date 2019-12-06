@@ -102,91 +102,99 @@ class protocols:
         temp = protocols.cutData(send, windowSize)   # cut the data
         windows = protocols.toWindowFrames(*temp) # convert into frames
         self.lastACK = -1   # last acked frame, set to -1 since frame 0 is not acked
+        self.ACKED = []
+        for i in range(256): # set 0 <-> 255 to false
+            self.ACKED.append(False)
+        self.resetFlag = False
         self.current = 0    # current frame sending
         self.send = 0
         self.cuts = 0
+        self.stopAll = False
         # define two_threads to run simultaneusly
 
         haltEvent = threading.Event()
 
         #_thread 1
-        def thread_1(self, windows):
-            fails = 0
+
+        def send_packet(self, pack, timeout):
+            print("#############START", threading.currentThread().getName())
+            num = pack.SequenceNumber
+            while not self.ACKED[num] and not (num == 255 and self.resetFlag) and not self.stopAll:
+                print("Attempting to send a packet\n", pack)
+                self.sock.sendto(pack.dump(), (self.UDP_IP, self.UDP_PORT_1))
+                time.sleep(timeout)
+            print("#############STOP", threading.currentThread().getName())
+
+        # listener thread, adds ACKs to the self.ACKED
+        # sets the resetFlag to true when reset needed
+        def listen(self):
             while True:
-                if fails >= 9:
-                    print("Failed to send (No update after 10 tries)")
-                    break
-                # while we still have frames to send
-                # and until the final ack is recieved
-                startTime = time.time() # get the time at which we started sending
-                cAck = self.lastACK          # set a temporary ack check var
-                while self.send < self.lastACK + maxFrames:
-                    if self.current >= len(windows):
-                        break
-                    # send the next maxFrames frames
+                bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
+                binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
+                ackn = binFlag[1]
+                a = binFlag[2]
 
-                    currentWindow = windows[self.current]
-                    print(self.current, self.send, self.lastACK, currentWindow)
-                    self.send = currentWindow.SequenceNumber
+                # determine if ACK, RST, SYN, or FIN (or any combination of them)
+                if a >= packet.ACK:
+                    # ack received
+                    a -= packet.ACK
+                if a >= packet.RST:
+                    # reset received
+                    a -= packet.RST
+                    self.resetFlag = True
+                    self.lastACK = -1
+                if a >= packet.SYN:
+                    # sync received
+                    a -= packet.SYN
+                if a >= packet.FIN:
+                    # finalize received
+                    a -= packet.FIN
+                    print("Recieved finalization fix later")
 
-                    if self.send == 0:
-                        self.cuts += 1
-                        currentWindow.Type += packet.RST
+                # if this is one of the next ACKs
+                if ackn > self.lastACK:
+                    # set this packet and all previous packets to true
+                    print("===ACK", ackn)
+                    for i in range(ackn, -1, -1):
+                        self.ACKED[i] = True
+                    self.lastACK = ackn
 
-                    self.sock.sendto(currentWindow.dump(), (self.UDP_IP, self.UDP_PORT_1))
-                    self.current += 1
-                while time.time() < startTime + 0.3 and cAck == self.lastACK and not self.current >= len(windows):
-                    # wait x seconds (timeout) or wait until lastACK is updated
-                    time.sleep(0.001)
-
-                # if timeout
-                if time.time() > startTime + 0.3:
-                    print("##Timeout##")
-                    print(self.current, self.send, self.lastACK, self.cuts)
-                    self.current = self.lastACK + (255 * self.cuts) + 1
-                    self.send = self.lastACK + 1
-                    print(self.current, self.send, self.lastACK)
-                    print("###########")
-                if self.current >= len(windows):
-                    fails = 0
-
-                # if lastACK updated
-                if cAck != self.lastACK:
-                    fails = 0
-                else:
-                    fails += 1
-
-                # if we are done
-                if self.current >= len(windows) and self.send == self.lastACK:
-                    print(self.current, len(windows))
-                    print(self.send, self.lastACK)
-                    print(self.cuts)
-                    break
-            print("SET HALT EVENT")
-            haltEvent.set()
-
-        def thread_2(self, halt):
-            while not halt.is_set():
-                try:
-                    bAPair = self.sock2.recvfrom(self.bufferSize) # recieve from client
-                    binFlag = bytearray(bAPair[0][:3])  # binary flags sent in packet
-                    ackn = binFlag[1]
-                    a = binFlag[2]
-                    a = a - packet.ACK
-                    print("###############################")
-                    print("RECIEVED ACK", ackn)
-                    if ackn > self.lastACK or a >= packet.RST:
-                        self.lastACK = ackn
-                except:
-                    print("Failed to recieve oh nooooo")
-                    sys.exit(1)
-
-        t1 = threading.Thread(name="Sender", target=thread_1, args=(self, windows))
-        t2 = threading.Thread(name="Reciever", target=thread_2, args=(self, haltEvent))
-        t2.start() # start the listener first in case
-        # starting it takes longer than it does to send/recieve
+        # run the listener
+        t1 = threading.Thread(target=listen, args=(self,))
         t1.start()
-        haltEvent.wait() # wait until halt event recieved
+        # run the sender
+        i = 0
+        while i < len(windows):
+            j = 0
+            threads = []
+            while j < 256:
+                # start threads
+                print(windows[i + j].SequenceNumber, i, j, i + j)
+                temp = threading.Thread(name=str(j), target=send_packet, args=(self, windows[i + j], 0.1))
+                temp.start()
+                threads.append(temp)
+                # ensure only maxFrames threads are running at once
+                while len(threads) >= maxFrames:
+                    print("Threads at max length")
+                    threads = [t for t in threads if t.is_alive()]
+                    time.sleep(0.1)
+
+                # ensure that, if we are on the 255th window, that we wait until it completes.
+                while len(threads) >= 1 and j == 255:
+                    for t in threads:
+                        if t.getName() == str(j) and not t.is_alive():
+                            print("STOP ALL")
+                            self.stopAll = True
+                            time.sleep(2)
+                            self.stopAll = False
+                            for k in range(255):
+                                self.ACKED[k] = False
+                            threads = [t for t in threads if t.is_alive()]
+                            break
+                    time.sleep(0.1)
+                j += 1
+
+            i += 256
 
     def slidingListen(self):
         # run until FIN flag recieved
@@ -217,7 +225,6 @@ class protocols:
                 tp2 += packet.RST
                 # reset acker
                 lastRec = 0
-                binFlag[0] = 0
                 rstflag = True
 
             if tp - packet.SYN >= 0:
@@ -241,6 +248,8 @@ class protocols:
             # send ACK
             a = packet(0, binFlag[0], tp2, "ack")
             self.sock.sendto(a.dump(), (raddr, self.UDP_PORT_1))
+            if rstFlag:
+                lastRec = 0
             if breakflag:
                 break
         return protocols.scrub(data)
@@ -296,6 +305,8 @@ class protocols:
 
             if j > 255:
                 j = 0
+
+            if j == 255:
                 tp += packet.RST
 
             packets.append(packet(j, 0, tp, arg))
